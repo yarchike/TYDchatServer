@@ -6,16 +6,18 @@ import com.martynov.route.RoutingV1
 import com.martynov.service.FileService
 import com.martynov.service.JWTTokenService
 import com.martynov.service.UserService
+import com.martynov.socet.Server
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.gson.*
 import io.ktor.features.*
-import io.ktor.server.cio.*
+import io.ktor.gson.*
+import io.ktor.http.cio.websocket.*
+import io.ktor.routing.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.eagerSingleton
 import org.kodein.di.generic.instance
@@ -24,16 +26,23 @@ import org.kodein.di.ktor.KodeinFeature
 import org.kodein.di.ktor.kodein
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.Duration
 import javax.naming.ConfigurationException
+import kotlin.coroutines.EmptyCoroutineContext
 
-fun main(args: Array<String>) {
-    EngineMain.main(args)
-}
+fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {
+        install(io.ktor.websocket.WebSockets) {
+            pingPeriod = Duration.ofSeconds(15)
+            timeout = Duration.ofSeconds(15)
+            maxFrameSize = Long.MAX_VALUE
+            masking = false
+        }
         gson {
             setPrettyPrinting()
             serializeNulls()
@@ -78,6 +87,10 @@ fun Application.module(testing: Boolean = false) {
         val routingV1 by kodein().instance<RoutingV1>()
         routingV1.setup(this)
     }
+    launch(Dispatchers.Default) {
+        val server = Server ()
+    }
+        //
 
 
 }

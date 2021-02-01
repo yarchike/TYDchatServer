@@ -6,10 +6,12 @@ import com.martynov.service.FileService
 import com.martynov.service.UserService
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.websocket.*
 
 class RoutingV1(
     private val staticPath: String,
@@ -43,8 +45,6 @@ class RoutingV1(
                 val response = userService.authenticate(input)
                 call.respond(response)
             }
-
-
 
         }
     }
